@@ -1,0 +1,9 @@
+pałac
+polowanie
+ogród
+miecz
+wieża
+zamek
+wiosna
+jesień
+<script>alert("owned")</script>
