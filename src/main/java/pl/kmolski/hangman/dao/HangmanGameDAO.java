@@ -1,13 +1,12 @@
 package pl.kmolski.hangman.dao;
 
+import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import pl.kmolski.hangman.model.HangmanGame;
 
-import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
-import javax.persistence.PersistenceContext;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
@@ -22,13 +21,13 @@ import java.util.function.Consumer;
  * @author Krzysztof Molski
  * @version 1.0.1
  */
-@Stateless
+@Component
 public class HangmanGameDAO {
     /**
      * The entity manager managed by the server persistence context.
      */
-    @PersistenceContext(unitName = "hangman")
-    private EntityManager em;
+    @Autowired
+    private SessionFactory sessionFactory;
 
     /**
      * Persist the game in the database.
@@ -52,7 +51,8 @@ public class HangmanGameDAO {
      * @return The saved instance of the game with the specified ID.
      */
     public Optional<HangmanGame> get(Serializable id) {
-        return Optional.ofNullable(em.find(HangmanGame.class, id));
+        var session = sessionFactory.getCurrentSession();
+        return Optional.ofNullable(session.get(HangmanGame.class, id));
     }
 
     /**
@@ -60,10 +60,8 @@ public class HangmanGameDAO {
      * @return A list of all game saves.
      */
     public List<HangmanGame> getAll() {
-        CriteriaBuilder builder = em.getCriteriaBuilder();
-        CriteriaQuery<HangmanGame> criteria = builder.createQuery(HangmanGame.class);
-        criteria.from(HangmanGame.class);
-        return em.createQuery(criteria).getResultList();
+        var session = sessionFactory.getCurrentSession();
+        return session.createQuery("from HangmanGame", HangmanGame.class).getResultList();
     }
 
     /**
@@ -79,10 +77,11 @@ public class HangmanGameDAO {
      * @param action An action that is executed inside a transaction.
      */
     public void executeInsideTransaction(Consumer<EntityManager> action) {
-        EntityTransaction tx = em.getTransaction();
+        var session = sessionFactory.getCurrentSession();
+        EntityTransaction tx = session.getTransaction();
         try {
             tx.begin();
-            action.accept(em);
+            action.accept(session);
             tx.commit();
         } catch (RuntimeException e) {
             tx.rollback();

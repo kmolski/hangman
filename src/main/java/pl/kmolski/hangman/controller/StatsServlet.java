@@ -1,7 +1,6 @@
 package pl.kmolski.hangman.controller;
 
 import org.thymeleaf.context.WebContext;
-import pl.kmolski.hangman.HangmanApplication;
 import pl.kmolski.hangman.model.HangmanGame;
 
 import javax.servlet.annotation.WebServlet;
@@ -50,7 +49,6 @@ public class StatsServlet extends HttpServlet {
         ctx.setVariables(Arrays.stream(request.getCookies())
                                .filter(cookie -> COOKIE_NAMES.contains(cookie.getName()))
                                .collect(Collectors.toMap(Cookie::getName, Cookie::getValue)));
-        HangmanApplication.getTemplateEngine().process("Stats", ctx, response.getWriter());
     }
 
     /**

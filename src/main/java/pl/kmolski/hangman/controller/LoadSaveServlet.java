@@ -3,7 +3,6 @@ package pl.kmolski.hangman.controller;
 import pl.kmolski.hangman.dao.HangmanGameDAO;
 import pl.kmolski.hangman.model.HangmanGame;
 
-import javax.ejb.EJB;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -26,7 +25,6 @@ public class LoadSaveServlet extends HttpServlet {
     /**
      * Injected data-access object for HangmanGame object management.
      */
-    @EJB
     private HangmanGameDAO gameDAO;
 
     /**

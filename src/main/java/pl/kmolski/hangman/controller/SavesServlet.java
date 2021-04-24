@@ -1,10 +1,8 @@
 package pl.kmolski.hangman.controller;
 
 import org.thymeleaf.context.WebContext;
-import pl.kmolski.hangman.HangmanApplication;
 import pl.kmolski.hangman.dao.HangmanGameDAO;
 
-import javax.ejb.EJB;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -25,7 +23,6 @@ public class SavesServlet extends HttpServlet {
     /**
      * Injected data-access object for HangmanGame object management.
      */
-    @EJB
     private HangmanGameDAO gameDAO;
 
     /**
@@ -39,7 +36,6 @@ public class SavesServlet extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         var ctx = new WebContext(request, response, getServletContext());
         ctx.setVariable("saves", gameDAO.getAll());
-        HangmanApplication.getTemplateEngine().process("Saves", ctx, response.getWriter());
     }
 
     /**

@@ -1,6 +1,5 @@
 package pl.kmolski.hangman.controller;
 
-import javax.ejb.EJB;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 
@@ -24,7 +23,6 @@ public class SubmitGuessServlet extends HttpServlet {
     /**
      * Injected data-access object for HangmanGame object management.
      */
-    @EJB
     private HangmanGameDAO gameDAO;
 
     /**
@@ -79,17 +77,17 @@ public class SubmitGuessServlet extends HttpServlet {
                 session.removeAttribute("model");
 
                 incrementCookieValue(request, response, model.didWin() ? "winCount" : "loseCount");
-                response.sendRedirect(model.didWin() ? "game_won.html" : "game_lost.html");
+                response.sendRedirect(model.didWin() ? "static/game_won.html" : "static/game_lost.html");
             } else if (model.isRoundOver()) {
                 model.nextRound();
                 gameDAO.update(model);
 
-                response.sendRedirect("round_over.html");
+                response.sendRedirect("static/round_over.html");
             } else {
                 gameDAO.update(model);
 
                 incrementCookieValue(request, response, isGuessCorrect ? "correctGuesses" : "wrongGuesses");
-                response.sendRedirect(isGuessCorrect ? "guess_correct.html" : "guess_wrong.html");
+                response.sendRedirect(isGuessCorrect ? "static/guess_correct.html" : "static/guess_wrong.html");
             }
         } catch (InvalidGuessException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid guess: " + e.getMessage());

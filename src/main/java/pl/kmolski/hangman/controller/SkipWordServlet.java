@@ -1,6 +1,5 @@
 package pl.kmolski.hangman.controller;
 
-import javax.ejb.EJB;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 
@@ -23,7 +22,6 @@ public class SkipWordServlet extends HttpServlet {
     /**
      * Injected data-access object for HangmanGame object management.
      */
-    @EJB
     private HangmanGameDAO gameDAO;
 
     /**
@@ -63,7 +61,7 @@ public class SkipWordServlet extends HttpServlet {
 
             cookie.setMaxAge(60 * 60 * 24 * 365);
             response.addCookie(cookie);
-            response.sendRedirect("game_lost.html");
+            response.sendRedirect("static/game_lost.html");
         } else {
             gameDAO.update(model);
             response.sendRedirect("Home");
