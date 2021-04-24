@@ -33,17 +33,17 @@
             </tr>
         </thead>
         <tbody>
-            <tr data-th-each="model, iterStat: ${saves}">
+            <tr data-th-each="gameModel, iterStat: ${saves}">
                 <th scope="row" data-th-text="${iterStat.index + 1}">#</th>
-                <td data-th-text="${model.maskedWord}">maskedWord</td>
-                <td data-th-text="${model.misses}">misses</td>
-                <td data-th-text="${model.wordsGuessed}">wordsGuessed</td>
-                <td data-th-text="${model.wordsRemaining}">wordsRemaining</td>
-                <td> <a data-th-href="@{/LoadSave(id=${model.id})}" class="btn btn-primary">Load save</a> </td>
+                <td data-th-text="${gameModel.maskedWord}">maskedWord</td>
+                <td data-th-text="${gameModel.misses}">misses</td>
+                <td data-th-text="${gameModel.wordsGuessed}">wordsGuessed</td>
+                <td data-th-text="${gameModel.wordsRemaining}">wordsRemaining</td>
+                <td> <a data-th-href="@{/LoadSave(id=${gameModel.id})}" class="btn btn-primary">Load save</a> </td>
             </tr>
         </tbody>
         </table>
-        <a href="../../resources/index.html" class="btn btn-secondary my-2" role="button">Go back</a>
+        <a href="index.html" class="btn btn-secondary my-2" role="button">Go back</a>
     </div>
 </body>
 </html>

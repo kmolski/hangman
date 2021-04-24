@@ -25,19 +25,19 @@
         <div class="row">
             <div class="col-sm">
                 <h1>Welcome to the game!</h1> <br/>
-                The word is: <span data-th-text="${model.maskedWord}">maskedWord</span> <br/>
-                You have already tried the following letters: <span data-th-text="${model.guessedLetters}">guessedLetters</span> <br/> <br/>
-                You have missed <span data-th-text="${model.misses}">misses</span> times. <br/> <br/>
-                <form action="SubmitGuess" method="post">
+                The word is: <span data-th-text="${gameModel.maskedWord}">maskedWord</span> <br/>
+                You have already tried the following letters: <span data-th-text="${gameModel.guessedLetters}">guessedLetters</span> <br/> <br/>
+                You have missed <span data-th-text="${gameModel.misses}">misses</span> times. <br/> <br/>
+                <form action="submitGuess" method="post">
                     Enter your guess:
                     <input class="form-control my-2 w-25" type="text" minlength="1" maxlength="1" autocomplete="off" name="guess" id="name" required autofocus>
                     <button class="btn btn-primary my-2" type="submit">Try guess</button>
-                    <a href="SkipWord" class="btn btn-secondary m-2" role="button">Skip word</a>
-                    <a href="Stats" class="btn btn-secondary my-2" role="button">Game stats</a>
+                    <a href="skipWord" class="btn btn-secondary m-2" role="button">Skip word</a>
+                    <a href="stats" class="btn btn-secondary my-2" role="button">Game stats</a>
                 </form>
             </div>
             <div class="col-sm">
-                <img data-th-src="@{'/images/' + ${model.misses} + '.png'}" alt="hangman">
+                <img data-th-src="@{'/images/' + ${gameModel.misses} + '.png'}" alt="hangman">
             </div>
         </div>
     </div>

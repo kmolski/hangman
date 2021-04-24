@@ -28,10 +28,10 @@
         You have made <span data-th-text="${correctGuesses} ?: '0'">correctGuesses</span> correct guesses. <br/>
         You have made <span data-th-text="${wrongGuesses} ?: '0'">wrongGuesses</span> wrong guesses. <br/> <br/>
         <h1>Statistics from the current game:</h1> <br/>
-        You have guessed <span data-th-text="${model.wordsGuessed} ?: '0'">wordsGuessed</span> words correctly. <br/>
-        There are <span data-th-text="${model.wordsRemaining} ?: '0'">wordsRemaining</span> words left. <br/>
-        You have missed <span data-th-text="${model.misses} ?: '0'">misses</span> times in the current round. <br/> <br/>
-        <a href="Home" class="btn btn-primary my-2" role="button">Go back</a>
+        You have guessed <span data-th-text="${gameModel.wordsGuessed} ?: '0'">wordsGuessed</span> words correctly. <br/>
+        There are <span data-th-text="${gameModel.wordsRemaining} ?: '0'">wordsRemaining</span> words left. <br/>
+        You have missed <span data-th-text="${gameModel.misses} ?: '0'">misses</span> times in the current round. <br/> <br/>
+        <a href="home" class="btn btn-primary my-2" role="button">Go back</a>
     </div>
 </body>
 </html>
