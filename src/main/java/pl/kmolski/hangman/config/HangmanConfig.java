@@ -1,16 +1,12 @@
 package pl.kmolski.hangman.config;
 
 import org.apache.tomcat.dbcp.dbcp2.BasicDataSource;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.orm.hibernate5.HibernateTransactionManager;
-import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
+import org.springframework.context.annotation.*;
+import org.springframework.orm.hibernate5.*;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+import org.springframework.web.servlet.config.annotation.*;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 import org.thymeleaf.spring5.templateresolver.SpringResourceTemplateResolver;
 import org.thymeleaf.spring5.view.ThymeleafViewResolver;
@@ -34,8 +30,7 @@ public class HangmanConfig implements WebMvcConfigurer {
         properties.setProperty("hibernate.dialect", "org.hibernate.dialect.MariaDBDialect");
         properties.setProperty("hibernate.show_sql", "true");
         properties.setProperty("hibernate.format_sql", "true");
-        properties.setProperty("hibernate.hbm2ddl.auto", "create");
-
+        properties.setProperty("hibernate.hbm2ddl.auto", "validate");
         return properties;
     }
 
@@ -46,7 +41,6 @@ public class HangmanConfig implements WebMvcConfigurer {
         dataSource.setUrl("jdbc:mariadb://localhost:3306/hangman");
         dataSource.setUsername("hangman");
         dataSource.setPassword("hangman");
-
         return dataSource;
     }
 
@@ -56,7 +50,6 @@ public class HangmanConfig implements WebMvcConfigurer {
         sessionFactory.setDataSource(dataSource());
         sessionFactory.setPackagesToScan("pl.kmolski.hangman.model");
         sessionFactory.setHibernateProperties(hibernateProperties());
-
         return sessionFactory;
     }
 
@@ -73,7 +66,6 @@ public class HangmanConfig implements WebMvcConfigurer {
         templateResolver.setTemplateMode(TemplateMode.HTML);
         templateResolver.setPrefix("/templates/");
         templateResolver.setSuffix(".html");
-
         return templateResolver;
     }
 
@@ -81,7 +73,6 @@ public class HangmanConfig implements WebMvcConfigurer {
     public SpringTemplateEngine templateEngine() {
         var templateEngine = new SpringTemplateEngine();
         templateEngine.setTemplateResolver(templateResolver());
-
         return templateEngine;
     }
 
@@ -90,7 +81,13 @@ public class HangmanConfig implements WebMvcConfigurer {
         var viewResolver = new ThymeleafViewResolver();
         viewResolver.setTemplateEngine(templateEngine());
         viewResolver.setOrder(1);
-
         return viewResolver;
+    }
+
+    @Bean
+    public CommonsMultipartResolver multipartResolver() {
+        var multipartResolver = new CommonsMultipartResolver();
+        multipartResolver.setMaxUploadSize(6144);
+        return multipartResolver;
     }
 }
