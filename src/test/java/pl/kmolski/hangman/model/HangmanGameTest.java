@@ -33,7 +33,7 @@ public class HangmanGameTest {
      */
     @BeforeEach
     void setUp() {
-        HangmanDictionary dictionary = new HangmanDictionary();
+        var dictionary = new HangmanDictionary();
         model = new HangmanGame(dictionary);
     }
 

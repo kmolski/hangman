@@ -1,7 +1,6 @@
 package pl.kmolski.hangman.model;
 
 import com.sun.istack.NotNull;
-import pl.kmolski.hangman.HangmanGameModel;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -17,11 +16,16 @@ import java.util.stream.Collectors;
  * guessing letters, managing the dictionary and win/lose conditions.
  *
  * @author Krzysztof Molski
- * @version 1.0.8
+ * @version 1.1.0
  */
 @Entity
 @Table(name = "game_saves")
-public class HangmanGame implements HangmanGameModel, Serializable {
+public class HangmanGame implements Serializable {
+    /**
+     * The maximum number of incorrect guesses.
+     */
+    private static final int MAX_MISSES = 6;
+
     /**
      * The identifier of the HangmanGame instance in the database.
      */
@@ -29,19 +33,6 @@ public class HangmanGame implements HangmanGameModel, Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     @NotNull
     private Long id;
-
-    /**
-     * Get the identifier of this HangmanGame instance.
-     * @return The HangmanGame identifier
-     */
-    public Long getId() {
-        return id;
-    }
-
-    /**
-     * The maximum number of incorrect guesses.
-     */
-    private static final int MAX_MISSES = 6;
 
     /**
      * The dictionary from which words will be taken.
@@ -87,7 +78,6 @@ public class HangmanGame implements HangmanGameModel, Serializable {
      * Add new words to the dictionary. Duplicates are not removed.
      * @param words Collection of words to be added.
      */
-    @Override
     public void addWords(Collection<String> words) {
         dictionary.addWords(words);
     }
@@ -95,11 +85,18 @@ public class HangmanGame implements HangmanGameModel, Serializable {
     /**
      * Start a new round of the game - select a new random word, reset the miss count and guessed letters.
      */
-    @Override
     public void nextRound() {
-        currentWord = dictionary.takeWord().replaceAll("\\s+", " ");
+        currentWord = dictionary.takeWord();
         guessedLetters = " ";
         misses = 0;
+    }
+
+    /**
+     * Get the identifier of this HangmanGame instance.
+     * @return The HangmanGame identifier
+     */
+    public Long getId() {
+        return id;
     }
 
     /**
@@ -107,7 +104,6 @@ public class HangmanGame implements HangmanGameModel, Serializable {
      * have not been tried so far are replaced with `_` characters.
      * @return The current word with secret characters masked out.
      */
-    @Override
     public String getMaskedWord() {
         String word;
 
@@ -125,7 +121,6 @@ public class HangmanGame implements HangmanGameModel, Serializable {
      * Get the incorrect guess count.
      * @return The number of incorrect guesses.
      */
-    @Override
     public int getMisses() {
         return misses;
     }
@@ -134,7 +129,6 @@ public class HangmanGame implements HangmanGameModel, Serializable {
      * Check whether the current word has been guessed.
      * @return true if the current word has been guessed correctly.
      */
-    @Override
     public boolean isRoundOver() {
         return currentWord == null || currentWord.replaceAll("([" + guessedLetters + "])", "")
                                                  .isEmpty();
@@ -144,7 +138,6 @@ public class HangmanGame implements HangmanGameModel, Serializable {
      * Check if the game is over (either all words have been guessed, or the player has lost a round)
      * @return true if the game is over.
      */
-    @Override
     public boolean isGameOver() {
         return misses == MAX_MISSES || (isRoundOver() && dictionary.isEmpty()) || currentWord == null;
     }
@@ -155,7 +148,6 @@ public class HangmanGame implements HangmanGameModel, Serializable {
      * @return true if the guess was correct.
      * @throws InvalidGuessException Thrown if the guess is not a single letter.
      */
-    @Override
     public boolean tryLetter(String guess) throws InvalidGuessException {
         if (guess == null || guess.isEmpty()) {
             throw new InvalidGuessException("empty or null guess");
@@ -180,7 +172,6 @@ public class HangmanGame implements HangmanGameModel, Serializable {
      * Get the word that is currently being guessed.
      * @return The current word.
      */
-    @Override
     public String getCurrentWord() {
         return currentWord;
     }
@@ -189,7 +180,6 @@ public class HangmanGame implements HangmanGameModel, Serializable {
      * Get all guessed letters, separated by spaces.
      * @return The guessed letters in ascending order.
      */
-    @Override
     public String getGuessedLetters() {
         return guessedLetters.replaceAll("\\s", "")
                              .chars().distinct().sorted().mapToObj(Character::toString)
@@ -200,7 +190,6 @@ public class HangmanGame implements HangmanGameModel, Serializable {
      * Check if the player has won the game through guessing all words correctly.
      * @return true if the player has won the game.
      */
-    @Override
     public boolean didWin() {
         return dictionary.isEmpty() && dictionary.getWordCount() == wordsGuessed;
     }
@@ -209,7 +198,6 @@ public class HangmanGame implements HangmanGameModel, Serializable {
      * Get the number of words that have been guessed correctly.
      * @return The correct guess count.
      */
-    @Override
     public int getWordsGuessed() {
         return wordsGuessed;
     }
@@ -218,7 +206,6 @@ public class HangmanGame implements HangmanGameModel, Serializable {
      * Get the number of words left in the dictionary.
      * @return The remaining words count.
      */
-    @Override
     public int getWordsRemaining() {
         return dictionary.getWordCount() - wordsGuessed;
     }

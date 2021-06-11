@@ -2,15 +2,13 @@ package pl.kmolski.hangman.dao;
 
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pl.kmolski.hangman.model.HangmanGame;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 /**
  * DAO class for HangmanGame objects.
@@ -21,20 +19,26 @@ import java.util.function.Consumer;
  * @author Krzysztof Molski
  * @version 1.0.1
  */
-@Component
-public class HangmanGameDAO {
+@Repository
+@Transactional
+public class HangmanGameRepository {
     /**
      * The entity manager managed by the server persistence context.
      */
-    @Autowired
     private SessionFactory sessionFactory;
+
+    @Autowired
+    private void setSessionFactory(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
+    }
 
     /**
      * Persist the game in the database.
      * @param model The game model that will be saved.
      */
     public void save(HangmanGame model) {
-        executeInsideTransaction(em -> em.persist(model));
+        var session = sessionFactory.getCurrentSession();
+        session.persist(model);
     }
 
     /**
@@ -42,7 +46,8 @@ public class HangmanGameDAO {
      * @param model The game model that will be updated.
      */
     public void update(HangmanGame model) {
-        executeInsideTransaction(em -> em.merge(model));
+        var session = sessionFactory.getCurrentSession();
+        session.merge(model);
     }
 
     /**
@@ -69,23 +74,7 @@ public class HangmanGameDAO {
      * @param model The game model that will be deleted.
      */
     public void delete(HangmanGame model) {
-        executeInsideTransaction(em -> em.remove(em.contains(model) ? model : em.merge(model)));
-    }
-
-    /**
-     * Execute an action inside an EntityTransaction.
-     * @param action An action that is executed inside a transaction.
-     */
-    public void executeInsideTransaction(Consumer<EntityManager> action) {
         var session = sessionFactory.getCurrentSession();
-        EntityTransaction tx = session.getTransaction();
-        try {
-            tx.begin();
-            action.accept(session);
-            tx.commit();
-        } catch (RuntimeException e) {
-            tx.rollback();
-            throw e;
-        }
+        session.remove(session.contains(model) ? model : session.merge(model));
     }
 }

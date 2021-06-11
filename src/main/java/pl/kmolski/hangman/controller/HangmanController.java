@@ -1,22 +1,22 @@
 package pl.kmolski.hangman.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.View;
-import org.springframework.web.servlet.view.RedirectView;
-import org.thymeleaf.spring5.view.ThymeleafView;
-import pl.kmolski.hangman.model.HangmanGame;
+import pl.kmolski.hangman.dao.HangmanGameRepository;
+import pl.kmolski.hangman.model.*;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -28,6 +28,13 @@ public class HangmanController {
      */
     private static final Set<String> COOKIE_NAMES = Set.of("winCount", "loseCount", "correctGuesses", "wrongGuesses");
 
+    private HangmanGameRepository gameRepository;
+
+    @Autowired
+    private void setGameRepository(HangmanGameRepository gameRepository) {
+        this.gameRepository = gameRepository;
+    }
+
     /**
      * Find the appropriate cookie, and increment its numeric value by 1. If the cookie
      * does not exist, a new cookie with the provided name and value "1" is created.
@@ -38,11 +45,14 @@ public class HangmanController {
     private void incrementCookieValue(HttpServletRequest request, HttpServletResponse response, String cookieName) {
         var cookie = Arrays.stream(request.getCookies())
                            .filter(c -> c.getName().equals(cookieName)).findFirst().orElse(null);
+
         if (cookie != null) {
-            cookie.setValue(Integer.toString(Integer.parseInt(cookie.getValue() + 1)));
+            int value = Integer.parseInt(cookie.getValue());
+            cookie.setValue(Integer.toString(value + 1));
         } else {
             cookie = new Cookie(cookieName, "1");
         }
+
         cookie.setMaxAge(60 * 60 * 24 * 365);
         response.addCookie(cookie);
     }
@@ -52,6 +62,7 @@ public class HangmanController {
         var model = new HangmanGame();
         model.addWords(HangmanDictionary.DEFAULT_WORDS);
         model.nextRound();
+        gameRepository.save(model);
         return model;
     }
 
@@ -59,7 +70,10 @@ public class HangmanController {
     public String addWords(@RequestParam("wordFile") MultipartFile wordFile,
                            @ModelAttribute("gameModel") HangmanGame gameModel) throws IOException {
         try (var reader = new BufferedReader(new InputStreamReader(wordFile.getInputStream()))) {
-            gameModel.addWords(reader.lines().map(String::trim).map(String::toLowerCase)
+            gameModel.addWords(reader.lines()
+                                     .map(String::trim)
+                                     .map(String::toLowerCase)
+                                     .map(s -> s.replaceAll("\\s+", " "))
                                      .collect(Collectors.toList()));
         }
 
@@ -69,6 +83,44 @@ public class HangmanController {
     @RequestMapping(path="/home")
     public String home(@ModelAttribute("gameModel") HangmanGame gameModel) {
         return "home";
+    }
+
+    @RequestMapping(path="/loadSave")
+    public String loadSave(@RequestParam("id") Long id,
+                           @ModelAttribute("gameModel") HangmanGame gameModel,
+                           HttpServletRequest request) {
+        gameRepository.update(gameModel);
+
+        Optional<HangmanGame> newModel = gameRepository.get(id);
+        if (newModel.isEmpty()) {
+            throw new RuntimeException("game save ID " + id + " does not exist!");
+        }
+
+        request.getSession().setAttribute("gameModel", newModel.get());
+        return "redirect:/home";
+    }
+
+    @RequestMapping(path="/saves")
+    public String saves(Model model) {
+        model.addAttribute("saves", gameRepository.getAll());
+        return "saves";
+    }
+
+    @RequestMapping(path="/skipWord")
+    public String skipWord(@ModelAttribute("gameModel") HangmanGame gameModel, HttpServletRequest request,
+                           HttpServletResponse response, SessionStatus status) {
+        gameModel.nextRound();
+
+        if (gameModel.isGameOver()) {
+            gameRepository.delete(gameModel);
+            status.setComplete();
+
+            incrementCookieValue(request, response, "loseCount");
+            return "redirect:/game_lost.html";
+        } else {
+            gameRepository.update(gameModel);
+            return "redirect:/home";
+        }
     }
 
     @RequestMapping(path="/stats")
@@ -89,8 +141,9 @@ public class HangmanController {
             boolean isGuessCorrect = gameModel.tryLetter(guess);
 
             if (gameModel.isGameOver()) {
-                //gameDAO.delete(model);
+                gameRepository.delete(gameModel);
                 status.setComplete();
+
                 incrementCookieValue(request, response, gameModel.didWin() ? "winCount" : "loseCount");
                 return (gameModel.didWin() ? "redirect:/game_won.html" : "redirect:/game_lost.html");
             } else if (gameModel.isRoundOver()) {
