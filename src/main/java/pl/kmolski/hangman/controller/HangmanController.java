@@ -3,25 +3,27 @@ package pl.kmolski.hangman.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.support.SessionStatus;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import pl.kmolski.hangman.dao.HangmanGameRepository;
-import pl.kmolski.hangman.model.*;
+import pl.kmolski.hangman.model.HangmanDictionary;
+import pl.kmolski.hangman.model.HangmanGame;
+import pl.kmolski.hangman.model.InvalidGuessException;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Controller
-@SessionAttributes("gameModel")
 public class HangmanController {
     /**
      * Names of the cookies used in the "/stats" view.
@@ -44,7 +46,8 @@ public class HangmanController {
      */
     private void incrementCookieValue(HttpServletRequest request, HttpServletResponse response, String cookieName) {
         var cookie = Arrays.stream(request.getCookies())
-                           .filter(c -> c.getName().equals(cookieName)).findFirst().orElse(null);
+                           .filter(c -> c.getName().equals(cookieName))
+                           .findFirst().orElse(null);
 
         if (cookie != null) {
             int value = Integer.parseInt(cookie.getValue());
@@ -57,8 +60,7 @@ public class HangmanController {
         response.addCookie(cookie);
     }
 
-    @ModelAttribute("gameModel")
-    public HangmanGame gameModel() {
+    public HangmanGame createAndSaveGameModel() {
         var model = new HangmanGame();
         model.addWords(HangmanDictionary.DEFAULT_WORDS);
         model.nextRound();
@@ -67,36 +69,44 @@ public class HangmanController {
     }
 
     @RequestMapping(path="/addWords", method=RequestMethod.POST)
-    public String addWords(@RequestParam("wordFile") MultipartFile wordFile,
-                           @ModelAttribute("gameModel") HangmanGame gameModel) throws IOException {
-        try (var reader = new BufferedReader(new InputStreamReader(wordFile.getInputStream()))) {
-            gameModel.addWords(reader.lines()
-                                     .map(String::trim)
-                                     .map(String::toLowerCase)
-                                     .map(s -> s.replaceAll("\\s+", " "))
-                                     .collect(Collectors.toList()));
+    public String addWords(@RequestParam("wordFile") MultipartFile wordFile, HttpSession session) throws IOException {
+        var gameModel = (HangmanGame) session.getAttribute("gameModel");
+        if (gameModel == null) {
+            return "redirect:/home";
         }
+
+        try (var reader = new BufferedReader(new InputStreamReader(wordFile.getInputStream()))) {
+            gameModel.addWords(reader.lines().collect(Collectors.toList()));
+        }
+        gameRepository.update(gameModel);
 
         return "redirect:/home";
     }
 
     @RequestMapping(path="/home")
-    public String home(@ModelAttribute("gameModel") HangmanGame gameModel) {
+    public String home(Model model, HttpSession session) {
+        var gameModel = (HangmanGame) session.getAttribute("gameModel");
+        if (gameModel == null) {
+            session.setAttribute("gameModel", createAndSaveGameModel());
+            return "redirect:/add_words.html";
+        }
+
+        model.addAttribute("gameModel", gameModel);
         return "home";
     }
 
     @RequestMapping(path="/loadSave")
-    public String loadSave(@RequestParam("id") Long id,
-                           @ModelAttribute("gameModel") HangmanGame gameModel,
-                           HttpServletRequest request) {
-        gameRepository.update(gameModel);
+    public String loadSave(@RequestParam("id") Long id, HttpSession session) {
+        var gameModel = (HangmanGame) session.getAttribute("gameModel");
+        if (gameModel != null) {
+            gameRepository.update(gameModel);
+        }
 
-        Optional<HangmanGame> newModel = gameRepository.get(id);
+        var newModel = gameRepository.get(id);
         if (newModel.isEmpty()) {
             throw new RuntimeException("game save ID " + id + " does not exist!");
         }
-
-        request.getSession().setAttribute("gameModel", newModel.get());
+        session.setAttribute("gameModel", newModel.get());
         return "redirect:/home";
     }
 
@@ -107,13 +117,16 @@ public class HangmanController {
     }
 
     @RequestMapping(path="/skipWord")
-    public String skipWord(@ModelAttribute("gameModel") HangmanGame gameModel, HttpServletRequest request,
-                           HttpServletResponse response, SessionStatus status) {
-        gameModel.nextRound();
+    public String skipWord(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+        var gameModel = (HangmanGame) session.getAttribute("gameModel");
+        if (gameModel == null) {
+            return "redirect:/home";
+        }
 
+        gameModel.nextRound();
         if (gameModel.isGameOver()) {
             gameRepository.delete(gameModel);
-            status.setComplete();
+            session.removeAttribute("gameModel");
 
             incrementCookieValue(request, response, "loseCount");
             return "redirect:/game_lost.html";
@@ -124,34 +137,65 @@ public class HangmanController {
     }
 
     @RequestMapping(path="/stats")
-    public String stats(HttpServletRequest request, Model model) {
+    public String stats(HttpServletRequest request, HttpSession session, Model model) {
+        var gameModel = (HangmanGame) session.getAttribute("gameModel");
+        if (gameModel == null) {
+            return "redirect:/home";
+        }
+
+        model.addAttribute("gameModel", gameModel);
         model.addAllAttributes(Arrays.stream(request.getCookies())
              .filter(cookie -> COOKIE_NAMES.contains(cookie.getName()))
              .collect(Collectors.toMap(Cookie::getName, Cookie::getValue)));
         return "stats";
     }
 
+    @RequestMapping(path="/gameOver")
+    public String gameOver(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+        var gameModel = (HangmanGame) session.getAttribute("gameModel");
+        if (gameModel == null) {
+            return "redirect:/home";
+        }
+
+        gameRepository.delete(gameModel);
+        session.removeAttribute("gameModel");
+
+        if (gameModel.didWin()) {
+            incrementCookieValue(request, response, "winCount");
+            return "redirect:/game_won.html";
+        } else {
+            incrementCookieValue(request, response, "loseCount");
+            return "redirect:/game_lost.html";
+        }
+    }
+
     @RequestMapping(path="/submitGuess")
     public String submitGuess(@RequestParam("guess") String guess,
-                              @ModelAttribute("gameModel") HangmanGame gameModel,
                               HttpServletRequest request,
                               HttpServletResponse response,
-                              SessionStatus status) {
+                              HttpSession session) {
+        var gameModel = (HangmanGame) session.getAttribute("gameModel");
+        if (gameModel == null) {
+            return "redirect:/home";
+        }
+
         try {
             boolean isGuessCorrect = gameModel.tryLetter(guess);
+            gameRepository.update(gameModel);
 
             if (gameModel.isGameOver()) {
-                gameRepository.delete(gameModel);
-                status.setComplete();
-
-                incrementCookieValue(request, response, gameModel.didWin() ? "winCount" : "loseCount");
-                return (gameModel.didWin() ? "redirect:/game_won.html" : "redirect:/game_lost.html");
+                return "redirect:/gameOver";
             } else if (gameModel.isRoundOver()) {
                 gameModel.nextRound();
                 return "redirect:/round_over.html";
+            }
+
+            if (isGuessCorrect) {
+                incrementCookieValue(request, response, "correctGuesses");
+                return "redirect:/guess_correct.html";
             } else {
-                incrementCookieValue(request, response, isGuessCorrect ? "correctGuesses" : "wrongGuesses");
-                return (isGuessCorrect ? "redirect:/guess_correct.html" : "redirect:/guess_wrong.html");
+                incrementCookieValue(request, response, "wrongGuesses");
+                return "redirect:/guess_wrong.html";
             }
         } catch (InvalidGuessException e) {
             //response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid guess: " + e.getMessage());

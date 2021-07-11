@@ -79,7 +79,12 @@ public class HangmanGame implements Serializable {
      * @param words Collection of words to be added.
      */
     public void addWords(Collection<String> words) {
-        dictionary.addWords(words);
+        var wordList = words.stream()
+                            .map(String::trim)
+                            .map(s -> s.replaceAll("\\s+", " "))
+                            .map(String::toLowerCase)
+                            .collect(Collectors.toList());
+        dictionary.addWords(wordList);
     }
 
     /**
@@ -130,8 +135,7 @@ public class HangmanGame implements Serializable {
      * @return true if the current word has been guessed correctly.
      */
     public boolean isRoundOver() {
-        return currentWord == null || currentWord.replaceAll("([" + guessedLetters + "])", "")
-                                                 .isEmpty();
+        return currentWord.replaceAll("([" + guessedLetters + "])", "").isEmpty();
     }
 
     /**
@@ -139,7 +143,7 @@ public class HangmanGame implements Serializable {
      * @return true if the game is over.
      */
     public boolean isGameOver() {
-        return misses == MAX_MISSES || (isRoundOver() && dictionary.isEmpty()) || currentWord == null;
+        return currentWord == null || misses == MAX_MISSES || (isRoundOver() && dictionary.isEmpty());
     }
 
     /**
@@ -153,8 +157,8 @@ public class HangmanGame implements Serializable {
             throw new InvalidGuessException("empty or null guess");
         }
 
-        String lowercaseGuess = guess.toLowerCase();
-        BreakIterator it = BreakIterator.getCharacterInstance();
+        var lowercaseGuess = guess.toLowerCase();
+        var it = BreakIterator.getCharacterInstance();
         it.setText(lowercaseGuess);
         if (it.next() != it.last()) {
             throw new InvalidGuessException(lowercaseGuess);

@@ -5,6 +5,7 @@ import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -21,7 +22,7 @@ import java.util.Random;
  */
 @Entity
 @Table(name = "dictionary_saves")
-public class HangmanDictionary {
+public class HangmanDictionary implements Serializable {
     /**
      * The default set of words for the dictionary.
      */
