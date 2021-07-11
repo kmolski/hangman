@@ -79,6 +79,7 @@ public class HangmanConfig implements WebMvcConfigurer {
     @Bean
     public ThymeleafViewResolver thymeleafViewResolver() {
         var viewResolver = new ThymeleafViewResolver();
+        viewResolver.setContentType("text/html;charset=UTF-8");
         viewResolver.setTemplateEngine(templateEngine());
         viewResolver.setOrder(1);
         return viewResolver;
