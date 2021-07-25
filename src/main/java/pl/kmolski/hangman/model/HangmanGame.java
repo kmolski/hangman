@@ -4,7 +4,6 @@ import com.sun.istack.NotNull;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.text.BreakIterator;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -158,10 +157,8 @@ public class HangmanGame implements Serializable {
         }
 
         var lowercaseGuess = guess.toLowerCase();
-        var it = BreakIterator.getCharacterInstance();
-        it.setText(lowercaseGuess);
-        if (it.next() != it.last()) {
-            throw new InvalidGuessException(lowercaseGuess);
+        if (lowercaseGuess.length() > 1) {
+            throw new InvalidGuessException("invalid guess: " + lowercaseGuess);
         }
 
         guessedLetters += lowercaseGuess;

@@ -1,4 +1,4 @@
-package pl.kmolski.hangman.dao;
+package pl.kmolski.hangman.repo;
 
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
