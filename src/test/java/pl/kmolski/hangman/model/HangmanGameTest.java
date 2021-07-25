@@ -10,6 +10,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -93,7 +94,8 @@ public class HangmanGameTest {
                 // Because the first letter of `currentWord` was used, the result of `tryLetter` should be true.
                 assertTrue(model.tryLetter(firstLetter), "The current word does not contain its first letter!");
                 // The masked word should now consist of the first letter of `currentWord` and `_` letters.
-                assertTrue(model.getMaskedWord().matches("[" + firstLetter + "_]*"),
+                String pattern = "[" + Pattern.quote(firstLetter) + "_]*";
+                assertTrue(model.getMaskedWord().matches(pattern),
                         "maskedWord does not contain the first letter of the current word!");
             }, "An exception has occurred:");
         }

@@ -6,6 +6,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -114,11 +115,12 @@ public class HangmanGame implements Serializable {
         if (guessedLetters.length() == 0) {
             word = "_".repeat(currentWord.length());
         } else {
-            word = currentWord.replaceAll("([^" + guessedLetters + "])", "_");
+            String pattern = "[^" + Pattern.quote(guessedLetters) + "]";
+            word = currentWord.replaceAll(pattern, "_");
         }
 
-        return word.chars().mapToObj(Character::toString)
-                           .collect(Collectors.joining(" "));
+        return word.chars().collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+                           .toString();
     }
 
     /**
@@ -134,7 +136,8 @@ public class HangmanGame implements Serializable {
      * @return true if the current word has been guessed correctly.
      */
     public boolean isRoundOver() {
-        return currentWord.replaceAll("([" + guessedLetters + "])", "").isEmpty();
+        String pattern = "[" + Pattern.quote(guessedLetters) + "]";
+        return currentWord.replaceAll(pattern, "").isEmpty();
     }
 
     /**
@@ -152,12 +155,12 @@ public class HangmanGame implements Serializable {
      * @throws InvalidGuessException Thrown if the guess is not a single letter.
      */
     public boolean tryLetter(String guess) throws InvalidGuessException {
-        if (guess == null || guess.isEmpty()) {
+        if (guess == null || guess.isBlank()) {
             throw new InvalidGuessException("empty or null guess");
         }
 
         var lowercaseGuess = guess.toLowerCase();
-        if (lowercaseGuess.length() > 1) {
+        if (lowercaseGuess.length() != 1) {
             throw new InvalidGuessException("invalid guess: " + lowercaseGuess);
         }
 
@@ -182,9 +185,9 @@ public class HangmanGame implements Serializable {
      * @return The guessed letters in ascending order.
      */
     public String getGuessedLetters() {
-        return guessedLetters.replaceAll("\\s", "")
-                             .chars().distinct().sorted().mapToObj(Character::toString)
-                             .collect(Collectors.joining(" "));
+        return guessedLetters.chars().distinct().sorted()
+                             .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+                             .toString();
     }
 
     /**
