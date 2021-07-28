@@ -119,8 +119,7 @@ public class HangmanGame implements Serializable {
             word = currentWord.replaceAll(pattern, "_");
         }
 
-        return word.chars().collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
-                           .toString();
+        return word.chars().mapToObj(Character::toString).collect(Collectors.joining(" "));
     }
 
     /**
@@ -186,8 +185,8 @@ public class HangmanGame implements Serializable {
      */
     public String getGuessedLetters() {
         return guessedLetters.chars().distinct().sorted()
-                             .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
-                             .toString();
+                             .mapToObj(Character::toString)
+                             .collect(Collectors.joining(" "));
     }
 
     /**
