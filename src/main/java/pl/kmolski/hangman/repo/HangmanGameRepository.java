@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * DAO class for HangmanGame objects.
+ * Repository class for HangmanGame objects.
  *
  * This class provides methods that save, delete, modify and fetch
  * HangmanGame objects from the application database.

@@ -20,6 +20,7 @@ import java.util.Properties;
 @EnableTransactionManagement
 @ComponentScan(basePackages = "pl.kmolski.hangman")
 public class HangmanConfig implements WebMvcConfigurer {
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/**").addResourceLocations("/static/");
