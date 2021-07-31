@@ -16,9 +16,18 @@ import java.io.InputStreamReader;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Service class for the web app. Handles database operations and main game logic.
+ *
+ * @author Krzysztof Molski
+ * @version 1.0
+ */
 @Service
 public class HangmanGameService {
 
+    /**
+     * Repository of game state objects.
+     */
     private HangmanGameRepository gameRepository;
 
     @Autowired
@@ -26,6 +35,11 @@ public class HangmanGameService {
         this.gameRepository = gameRepository;
     }
 
+    /**
+     * Create the game state object and persist it in the database.
+     * The new game state contains the default dictionary words.
+     * @return The game state object
+     */
     public HangmanGame createAndSaveGameModel() {
         var model = new HangmanGame(new HangmanDictionary());
         model.addWords(HangmanDictionary.DEFAULT_WORDS);
@@ -34,6 +48,13 @@ public class HangmanGameService {
         return model;
     }
 
+    /**
+     * Load a game state from the database. The previous game state should be provided
+     * as an argument to this method to ensure that no progress is lost.
+     * @param prevModel The previous game state object
+     * @param id The ID of the game state object that will be loaded
+     * @return The requested game state object
+     */
     @Transactional
     public HangmanGame loadGameSave(HangmanGame prevModel, Long id) {
         if (prevModel != null) {
@@ -47,10 +68,20 @@ public class HangmanGameService {
         return newModel.get();
     }
 
+    /**
+     * Get all game state object from the database
+     * @return A list of game state objects
+     */
     public List<HangmanGame> getAllGameSaves() {
         return gameRepository.getAll();
     }
 
+    /**
+     * Add words from the file to the game state object
+     * @param wordFile The word file
+     * @param gameModel The game state object
+     * @throws IOException This operation may fail if the word file can not be opened
+     */
     public void addWords(MultipartFile wordFile, HangmanGame gameModel) throws IOException {
         try (var reader = new BufferedReader(new InputStreamReader(wordFile.getInputStream()))) {
             gameModel.addWords(reader.lines().collect(Collectors.toList()));
@@ -58,6 +89,11 @@ public class HangmanGameService {
         gameRepository.update(gameModel);
     }
 
+    /**
+     * Skip the current word in the game. If this causes the player to lose
+     * the game, delete the game state object from the database.
+     * @param gameModel The game state object
+     */
     public void skipWord(HangmanGame gameModel) {
         gameModel.nextRound();
         if (gameModel.isGameOver()) {
@@ -67,6 +103,15 @@ public class HangmanGameService {
         }
     }
 
+    /**
+     * Try the given letter. If the guess causes the player to lose the game,
+     * the game state object will be removed from the DB and the HTTP session.
+     * @param session The HTTP session that contains the game state
+     * @param gameModel The game state object
+     * @param guess The guessed letter
+     * @return true if the guess is correct
+     * @throws InvalidGuessException May be thrown if the guess is not a single letter
+     */
     @Transactional
     public boolean tryLetter(HttpSession session, HangmanGame gameModel, String guess) throws InvalidGuessException {
         boolean isGuessCorrect = gameModel.tryLetter(guess);
