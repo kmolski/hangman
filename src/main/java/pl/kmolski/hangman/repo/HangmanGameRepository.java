@@ -6,7 +6,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import pl.kmolski.hangman.model.HangmanGame;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 
@@ -55,7 +54,7 @@ public class HangmanGameRepository {
      * @param id Game save ID.
      * @return The saved instance of the game with the specified ID.
      */
-    public Optional<HangmanGame> get(Serializable id) {
+    public Optional<HangmanGame> get(Long id) {
         var session = sessionFactory.getCurrentSession();
         return Optional.ofNullable(session.get(HangmanGame.class, id));
     }

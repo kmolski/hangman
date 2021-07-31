@@ -1,8 +1,7 @@
 package pl.kmolski.hangman.model;
 
-import com.sun.istack.NotNull;
-
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Objects;
@@ -19,7 +18,7 @@ import java.util.stream.Collectors;
  * @version 1.1.0
  */
 @Entity
-@Table(name = "game_saves")
+@Table(name="game_saves")
 public class HangmanGame implements Serializable {
     /**
      * The maximum number of incorrect guesses.
@@ -30,16 +29,17 @@ public class HangmanGame implements Serializable {
      * The identifier of the HangmanGame instance in the database.
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy=GenerationType.AUTO)
     @NotNull
     private Long id;
 
     /**
      * The dictionary from which words will be taken.
      */
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "id", referencedColumnName = "dict_id")
-    private final HangmanDictionary dictionary;
+    @OneToOne(cascade=CascadeType.ALL, fetch=FetchType.EAGER)
+    @JoinColumn(name="id", referencedColumnName="dict_id")
+    @NotNull
+    private HangmanDictionary dictionary;
     /**
      * The word that is currently being guessed.
      */
@@ -64,7 +64,7 @@ public class HangmanGame implements Serializable {
     /**
      * The zero-argument constructor required for the JPA Entity annotation.
      */
-    public HangmanGame() { dictionary = new HangmanDictionary(); }
+    public HangmanGame() { }
 
     /**
      * Create a new model instance for the game, using the provided dictionary.

@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import pl.kmolski.hangman.model.HangmanGame;
 import pl.kmolski.hangman.model.InvalidGuessException;
-import pl.kmolski.hangman.service.HangmanService;
+import pl.kmolski.hangman.service.HangmanGameService;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -21,16 +21,16 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Controller
-public class HangmanController {
+public class HangmanGameController {
     /**
      * Names of the cookies used in the "/stats" view.
      */
     private static final Set<String> COOKIE_NAMES = Set.of("winCount", "loseCount", "correctGuesses", "wrongGuesses");
 
-    private HangmanService gameService;
+    private HangmanGameService gameService;
 
     @Autowired
-    private void setGameService(HangmanService gameService) {
+    private void setGameService(HangmanGameService gameService) {
         this.gameService = gameService;
     }
 

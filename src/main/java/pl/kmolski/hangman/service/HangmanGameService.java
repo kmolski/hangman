@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class HangmanService {
+public class HangmanGameService {
 
     private HangmanGameRepository gameRepository;
 
@@ -27,7 +27,7 @@ public class HangmanService {
     }
 
     public HangmanGame createAndSaveGameModel() {
-        var model = new HangmanGame();
+        var model = new HangmanGame(new HangmanDictionary());
         model.addWords(HangmanDictionary.DEFAULT_WORDS);
         model.nextRound();
         gameRepository.save(model);

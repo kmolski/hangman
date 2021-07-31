@@ -1,10 +1,10 @@
 package pl.kmolski.hangman.model;
 
-import com.sun.istack.NotNull;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,7 +21,7 @@ import java.util.Random;
  * @version 1.0.6
  */
 @Entity
-@Table(name = "dictionary_saves")
+@Table(name="dictionary_saves")
 public class HangmanDictionary implements Serializable {
     /**
      * The default set of words for the dictionary.
@@ -32,9 +32,8 @@ public class HangmanDictionary implements Serializable {
      * The identifier of the HangmanDictionary in the database.
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
     @Column(name="dict_id")
-    @NotNull
     private Long id;
     /**
      * An ArrayList that contains the dictionary's words.

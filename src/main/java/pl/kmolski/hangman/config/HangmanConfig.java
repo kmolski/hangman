@@ -18,7 +18,7 @@ import java.util.Properties;
 @Configuration
 @EnableWebMvc
 @EnableTransactionManagement
-@ComponentScan(basePackages = "pl.kmolski.hangman")
+@ComponentScan(basePackages="pl.kmolski.hangman")
 public class HangmanConfig implements WebMvcConfigurer {
 
     @Override
