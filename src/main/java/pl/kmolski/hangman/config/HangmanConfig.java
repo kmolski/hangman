@@ -15,6 +15,15 @@ import org.thymeleaf.templatemode.TemplateMode;
 import javax.sql.DataSource;
 import java.util.Properties;
 
+/**
+ * Spring Web configuration for hangman.
+ *
+ * This class configures Hibernate data sources, transaction manager,
+ * the Thymeleaf template engine and multipart file support.
+ *
+ * @author Krzysztof Molski
+ * @version 1.0
+ */
 @Configuration
 @EnableWebMvc
 @EnableTransactionManagement

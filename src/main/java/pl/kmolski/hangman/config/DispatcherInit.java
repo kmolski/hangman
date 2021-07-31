@@ -5,6 +5,14 @@ import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatche
 
 import javax.servlet.Filter;
 
+/**
+ * Dispatcher configuration for hangman.
+ *
+ * This class configures servlet routing and character encoding for the HTML forms.
+ *
+ * @author Krzysztof Molski
+ * @version 1.0
+ */
 public class DispatcherInit extends AbstractAnnotationConfigDispatcherServletInitializer {
 
 	@Override
