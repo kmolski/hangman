@@ -20,6 +20,12 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Main controller class for the web app. This controller's endpoints are located at the web server root.
+ *
+ * @author Krzysztof Molski
+ * @version 1.0
+ */
 @Controller
 public class HangmanGameController {
     /**
@@ -27,6 +33,9 @@ public class HangmanGameController {
      */
     private static final Set<String> COOKIE_NAMES = Set.of("winCount", "loseCount", "correctGuesses", "wrongGuesses");
 
+    /**
+     * Game state management service.
+     */
     private HangmanGameService gameService;
 
     @Autowired
@@ -57,6 +66,11 @@ public class HangmanGameController {
         response.addCookie(cookie);
     }
 
+    /**
+     * Receive, process word files sent by the user, and updating the model accordingly.
+     * If there's no model instance in the current session, the client is redirected to "/home".
+     * @param wordFile The user-supplied word file
+     */
     @RequestMapping(path="/addWords", method=RequestMethod.POST)
     public String addWords(@RequestParam("wordFile") MultipartFile wordFile, HttpSession session) throws IOException {
         var gameModel = (HangmanGame) session.getAttribute("gameModel");
@@ -68,6 +82,11 @@ public class HangmanGameController {
         return "redirect:/home";
     }
 
+    /**
+     * Display the main screen of the game. Information about the current word
+     * and the miss count is displayed along with the relevant controls. If there's
+     * no model instance in the current session, a new instance is created.
+     */
     @RequestMapping(path="/home")
     public String home(Model model, HttpSession session) {
         var gameModel = (HangmanGame) session.getAttribute("gameModel");
@@ -80,6 +99,11 @@ public class HangmanGameController {
         return "home";
     }
 
+    /**
+     * Process the save load request from the client. If a model instance does exist in the
+     * current session, it will be saved to the database before any game save is loaded.
+     * @param id Game save ID
+     */
     @RequestMapping(path="/loadSave")
     public String loadSave(@RequestParam("id") Long id, HttpSession session) {
         var gameModel = (HangmanGame) session.getAttribute("gameModel");
@@ -88,12 +112,20 @@ public class HangmanGameController {
         return "redirect:/home";
     }
 
+    /**
+     * Display information about the game saves that are in the database: the last word that was being
+     * guessed, the number of words that were guessed correctly/are remaining and the miss count.
+     */
     @RequestMapping(path="/saves")
     public String saves(Model model) {
         model.addAttribute("saves", gameService.getAllGameSaves());
         return "saves";
     }
 
+    /**
+     * Process the word skip request from the client. If there's no model instance
+     * in the current session, the client is redirected to "/home".
+     */
     @RequestMapping(path="/skipWord")
     public String skipWord(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
         var gameModel = (HangmanGame) session.getAttribute("gameModel");
@@ -111,6 +143,11 @@ public class HangmanGameController {
         return "redirect:/home";
     }
 
+    /**
+     * Display information about the total number of wins/losses, correct/wrong guesses
+     * number of words that were guessed correctly/are remaining and the miss count.
+     * If there's no model instance in the current session, the client is redirected to "/home".
+     */
     @RequestMapping(path="/stats")
     public String stats(HttpServletRequest request, HttpSession session, Model model) {
         var gameModel = (HangmanGame) session.getAttribute("gameModel");
@@ -145,6 +182,11 @@ public class HangmanGameController {
         }
     }
 
+    /**
+     * Process the guess submission that was received from the client.
+     * If there's no model instance in the current session, the client is redirected to "/home".
+     * @param guess The user-supplied guess
+     */
     @RequestMapping(path="/submitGuess")
     public String submitGuess(@RequestParam("guess") String guess,
                               HttpServletRequest request,
